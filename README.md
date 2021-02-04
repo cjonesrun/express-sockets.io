@@ -1,6 +1,6 @@
 # node-express-sockets.io
-/ - clients
-/admin - admin
+- / - clients
+- /admin - admin
 
 
 ## More details to follow
