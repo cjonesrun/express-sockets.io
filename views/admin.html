@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>admin</title>
+  </head>
+
+  <body>
+    <p>
+      interval (ms): <input type="text" id="txt.millis" value="250"/>
+      <button id="btn.blast">
+        blast data
+      </button>
+    </p>
+    <p>
+      to socket: <input type="text" id="txt.socketid" placeholder="socket.id"/>
+      data: <input type="text" id="txt.msg" placeholder="enter data"/>
+      <button id="btn.send">
+        Send msg to socket.id
+      </button>
+    </p>
+
+    <p>
+      <button id="btn.connected">
+        connected sockets
+      </button>
+    </p>
+  
+    <p>
+      events:
+      <ul id="events"></ul>
+    </p>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+      const $events = document.getElementById('events');
+
+      const socket = io.connect(window.location.origin);
+    
+      socket.on('connect', () => {
+          newEvent($events, 'connected! socket-id='+socket.id);
+          socket.emit('connected',"");
+      });
+      
+      socket.on('broadcast', (msg) => {
+          newEvent($events, "broadcast: " + msg);
+      });
+      
+      socket.on('data', (msg) => {
+        
+        newEvent($events, "data: " + msg);
+      });
+      
+      document.body.addEventListener('click', function(e){
+        if(e.target.nodeName === 'BUTTON'){
+          
+          if(e.target.id === 'btn.blast'){
+            console.log("ajax call to GET /blast ");
+            
+            let millis = document.getElementById('txt.millis').value;
+            get("blast/"+millis, (res) => {
+              console.log(res);
+            });
+          }
+          
+          if(e.target.id === 'btn.send'){
+             let to = document.getElementById('txt.socketid').value;
+             let msg = document.getElementById('txt.msg').value;
+             console.log("ajax call to GET /send/"+to+"/"+msg+"or emit via socket.to(id).emit(qualifier, msg)");
+             
+            get("send/"+to+"/"+msg, (res) => {
+              console.log(res);
+            });
+          }
+          
+          if (e.target.id === 'btn.connected'){
+            get("status", (res) => {
+              let json = JSON.parse(res);
+              let count = Object.keys(json.sockets).length;
+              for (const key in json.sockets) {
+                newEvent($events, (count--) + ") " + key + " " + JSON.stringify(json.sockets[key]));
+              }
+            });
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
