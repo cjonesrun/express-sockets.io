@@ -1,9 +1,9 @@
-# hello-express
+# node-express-sockets.io
+/ - clients
+/admin - admin
 
-A server that serves a webpage, its resources, and some data
 
-
-## Your Project
+## More details to follow
 
 On the front-end,
 
