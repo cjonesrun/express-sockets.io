@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Listenening for events</title>
+</head>
+<body>
+    <div id="filter-div">
+      current filter: <span id="filter-name"></span> <code id="filter-def"></code>
+    </div>
+    <div>select filter:
+      <a href="?filter=hockey">hockey</a>
+      <a href="?filter=soccer">soccer</a>
+      <a href="?filter=basket">basketball</a>
+      <a href="?filter=ids">ids</a>
+      <a href="?filter=all">all</a>
+    </div>
+    <ul id="events"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script>
+        const filtermap = {
+            hockey: {type: "sport", filter: "hockey"},
+            soccer: {type: "sport", filter: "soccer"},
+            basket: {type: "sport", filter: "basketball"},
+            ids: { type: "eventids", filter: [12345, 12347, 12348]},
+            all: { type: "all" }
+        };
+
+        const $events = document.getElementById('events');
+        var socket;
+
+        
+
+        function connect() {
+            socket = io.connect(window.location.origin);
+
+            socket.on('connect', () => {
+                newEvent($events, 'connected! socket-id='+socket.id);
+                socket.emit('connected');
+              
+                var filterName = document.getElementById('filter-name').innerHTML;
+                var filter = filtermap[filterName];
+            
+                console.log("using filter", filterName, filtermap[fname]);
+              
+                newEvent($events, 'listening for data matching filter: ['+filterName+']');
+                socket.emit('filter', JSON.stringify(filter));
+            });
+
+            socket.on('broadcast', (msg) => {
+              newEvent($events, "broadcast: " + msg);
+            });
+
+            socket.on('data', (data) => {
+              newEvent($events, "data received: " + data);
+            });
+          
+            socket.on('blast', (data) => {
+              newEvent($events, "blast received: " + data);
+            });
+        }
+
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+ 
+        const urlParams = new URLSearchParams(location.search);
+        var fname = "all";
+        for (const [key, value] of urlParams) {
+            if (key === "filter")  {
+                fname = value;
+                break;
+            }
+        }
+        document.getElementById('filter-name').innerHTML = fname;
+        document.getElementById('filter-def').innerHTML = JSON.stringify(filtermap[fname]);
+        
+        connect();
+
+    </script>
+</body>
+</html>
